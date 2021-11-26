@@ -1,0 +1,7 @@
+# Use https://dependabot.com/docs/config-file/validator/ to check for errors.
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
