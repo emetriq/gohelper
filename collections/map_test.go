@@ -11,7 +11,7 @@ func TestMapKeysStrStr(t *testing.T) {
 		"key1": "value1",
 		"key2": "value2",
 	}
-	assert.Equal(t, []string{"key1", "key2"}, GetMapKeysStrStr(myMap))
+	assert.ElementsMatch(t, []string{"key1", "key2"}, GetMapKeysStrStr(myMap))
 }
 
 func TestMapKeysStrInt(t *testing.T) {
@@ -19,7 +19,7 @@ func TestMapKeysStrInt(t *testing.T) {
 		"key1": 1,
 		"key2": 2,
 	}
-	assert.Equal(t, []string{"key1", "key2"}, GetMapKeysStrInt(myMap))
+	assert.ElementsMatch(t, []string{"key1", "key2"}, GetMapKeysStrInt(myMap))
 }
 
 func TestMapKeysIntInt(t *testing.T) {
@@ -27,7 +27,7 @@ func TestMapKeysIntInt(t *testing.T) {
 		1:  2,
 		44: 3,
 	}
-	assert.Equal(t, []int{1, 44}, GetMapKeysIntInt(myMap))
+	assert.ElementsMatch(t, []int{1, 44}, GetMapKeysIntInt(myMap))
 }
 
 func TestMapKeysIntStr(t *testing.T) {
@@ -35,5 +35,5 @@ func TestMapKeysIntStr(t *testing.T) {
 		1:  "2",
 		44: "3",
 	}
-	assert.Equal(t, []int{1, 44}, GetMapKeysIntStr(myMap))
+	assert.ElementsMatch(t, []int{1, 44}, GetMapKeysIntStr(myMap))
 }
