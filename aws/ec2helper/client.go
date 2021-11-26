@@ -400,6 +400,9 @@ func (c *Client) GetAllRunningInstanceIDs() ([]*string, error) {
 	if err != nil {
 		return nil, err
 	}
+	if res == nil {
+		return nil, nil
+	}
 	return res.([]*string), nil
 }
 
@@ -424,6 +427,9 @@ func (c *Client) GetAllRunningInstanceIDsFilteredByName(name string) ([]*string,
 		return nil, err
 	}
 
+	if res == nil {
+		return nil, nil
+	}
 	return res.([]*string), nil
 }
 
@@ -446,6 +452,10 @@ func (c *Client) GetAllRunningInstancesFilteredByTag(tag string, value string) (
 		return nil, err
 	}
 
+	if res == nil {
+		return nil, nil
+	}
+
 	return res.([]*ec2.Instance), nil
 }
 
@@ -456,6 +466,9 @@ func (c *Client) RestoreRunningInstancesByName(name string) error {
 	res, err := c.GetAllRunningInstancesFilteredByTag("Name", name)
 	if err != nil {
 		return err
+	}
+	if res == nil {
+		return nil
 	}
 	c.ec2Instances = make([]*string, 0, len(res))
 	c.Ec2InstancePrivateIps = make([]string, 0, len(res))
