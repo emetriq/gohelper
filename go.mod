@@ -9,6 +9,6 @@ require (
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
-	github.com/thoas/go-funk v0.9.1
+	github.com/thoas/go-funk v0.9.2
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
 )
