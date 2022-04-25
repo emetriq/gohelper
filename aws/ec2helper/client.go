@@ -2,6 +2,7 @@ package ec2helper
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -483,4 +484,73 @@ func (c *Client) RestoreRunningInstancesByName(name string) error {
 		}
 	}
 	return nil
+}
+
+// GetAllPrivateIPsOfStackByChildPrivateDNSName returns all private IPs of the stack of a given child private DNS name
+func (c *Client) GetAllPrivateIPsOfStackByChildPrivateDNSName(childPrivateDNSName string) ([]*string, error) {
+	stackID, err := c.GetStackIDByPrivateDNSName(childPrivateDNSName)
+	if stackID == nil || err != nil {
+		return nil, fmt.Errorf("stack with private DNS name %s not found", childPrivateDNSName)
+	}
+	return c.getAllIPsOfStackByStackID(stackID, func(reservation *ec2.Reservation) *string {
+		if len(reservation.Instances) == 0 || reservation.Instances[0].PrivateIpAddress == nil || *reservation.Instances[0].PrivateDnsName == childPrivateDNSName {
+			return nil
+		}
+		return reservation.Instances[0].PrivateIpAddress
+	})
+}
+
+func (c *Client) getAllIPsOfStackByStackID(stackID *string, myMapFunc func(*ec2.Reservation) *string) ([]*string, error) {
+	resultDescribeInstances, err := c.Client.DescribeInstances(&ec2.DescribeInstancesInput{
+		Filters: []*ec2.Filter{
+			// only gab instances with stack-id tag
+			{
+				Name:   aws.String("tag:aws:cloudformation:stack-id"),
+				Values: []*string{stackID},
+			},
+		},
+	})
+	results := funk.Map(resultDescribeInstances.Reservations, myMapFunc).([]*string)
+	results = funk.Filter(results, func(ip *string) bool {
+		return ip != nil
+	}).([]*string)
+	return results, err
+}
+
+// GetAllPrivateIPsOfStackByStackID returns all private IPs of the stack of a given stack ID
+func (c *Client) GetAllPrivateIPsOfStackByStackID(stackID *string) ([]*string, error) {
+	return c.getAllIPsOfStackByStackID(stackID, func(reservation *ec2.Reservation) *string {
+		if len(reservation.Instances) == 0 {
+			return nil
+		}
+		return reservation.Instances[0].PrivateIpAddress
+	})
+}
+
+// GetStackIDByPrivateDNSName returns the stack ID of a given private DNS name of a stack child
+func (c *Client) GetStackIDByPrivateDNSName(dnsName string) (*string, error) {
+	if dnsName == "" {
+		return nil, errors.New("dnsName not set")
+	}
+	result, err := c.Client.DescribeInstances(&ec2.DescribeInstancesInput{
+		Filters: []*ec2.Filter{
+			{
+				Name:   aws.String("private-dns-name"),
+				Values: []*string{aws.String(dnsName)},
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(result.Reservations) == 0 && len(result.Reservations[0].Instances) == 0 {
+		return nil, errors.New("No instance found with private-dns-name " + dnsName)
+	}
+	stackIdTag := funk.Filter(result.Reservations[0].Instances[0].Tags, func(tag *ec2.Tag) bool {
+		return *tag.Key == "aws:cloudformation:stack-id"
+	}).([]*ec2.Tag)
+	if stackIdTag != nil && len(stackIdTag) == 0 {
+		return nil, errors.New("No stack-id tag found for instance with private-dns-name " + dnsName)
+	}
+	return stackIdTag[0].Value, nil
 }
