@@ -543,7 +543,7 @@ func (c *Client) GetStackIDByPrivateDNSName(dnsName string) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(result.Reservations) == 0 && len(result.Reservations[0].Instances) == 0 {
+	if len(result.Reservations) == 0 || len(result.Reservations[0].Instances) == 0 {
 		return nil, errors.New("No instance found with private-dns-name " + dnsName)
 	}
 	stackIdTag := funk.Filter(result.Reservations[0].Instances[0].Tags, func(tag *ec2.Tag) bool {
